@@ -1,0 +1,29 @@
+DISCLAIMER: 
+This is a simple script that I wrote for personal usage :) I haven't thoroughly tested the code, so USE AT YOUR OWN RISK.
+
+WHAT IS THIS FOR? :D
+This script can be used to copy files from your computer to protected directories on an Ubuntu Touch device.
+
+REQUIREMENTS:
+1) You have phablet-shell installed.
+2) You have connected to the device using phablet-shell at least once.
+3) You have write access to the filesystem (if not, connect via phablet-shell
+   and run "sudo mount -o remount,rw /"). 
+   NOTE: making the root filesystem writable could cause software issues 
+   (that can be fixed with a reflash) when updating the device!
+
+USAGE:
+./sudoscp_UbuntuTouch <from_path> <dest_path> <device_address> <file> (file)*
+
+Example: ./sudoscp_UbuntuTouch /usr/bin /home/phablet localhost myapp
+Note: the path of the files is interpreted as relative to <from_path>.
+
+The example copies /usr/bin/myapp to /home/phablet/myapp on the mobile device.
+<device_address> should be either 127.0.0.1 if the device is connected via USB,
+or its wlan IP address if you want to connect via Wi-Fi.
+
+WANT TO CONTRIBUTE?
+Feel free to fork the project and send a Pull Request :)
+
+CREDIT:
+Thanks to https://github.com/sigmunau/sudoscp for the idea, also some of the code was reused :)

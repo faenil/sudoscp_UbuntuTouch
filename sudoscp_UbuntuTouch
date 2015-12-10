@@ -1,0 +1,61 @@
+#! /bin/bash
+#Author: Andrea Bernabei <and.bernabei@gmail.com>
+
+res=0
+from_path=$1
+dest_path=$2
+device_address=$3
+
+shift
+shift
+shift
+files="$@"
+if test -z "$files" -o -z "$from_path" -o -z "$dest_path"
+then
+	echo "Invalid parameters."
+	echo
+        echo "Usage: $0 <from_path> <dest_path> <device_address> <file> (file)*"
+        echo "Example: $0 /usr/bin /home/phablet localhost myapp"
+        echo "Note: the path of the files is interpreted as relative to <from_path>."
+	echo
+	echo "The example copies /usr/bin/myapp to /home/phablet/myapp on the mobile device."
+	echo "<device_address> should be either 127.0.0.1 if the device is connected via USB,"
+	echo "or its wlan IP address if you want to connect via Wi-Fi."
+	echo
+        exit 1
+fi
+
+#phablet-shell actually forwards one in the range 2222-2299
+ssh_success=""
+if [ "$device_address" = "localhost" -o "$device_address" = "127.0.0.1" ]
+then
+	for port in `seq 2222 2299`; do
+		ssh -q -o "BatchMode=yes" phablet@$device_address -p $port "echo ssh detected on port $port" && ssh_success="y" && break
+	done
+else
+	echo $device_address
+	#if we're not connecting via usb, just try connecting to port 22
+	port=22
+	ssh -q -o "BatchMode=yes" phablet@$device_address -p $port "echo ssh detected on port $port" && ssh_success="y"
+fi
+
+if test -z "$ssh_success"
+then
+	echo "no ssh found, please run phablet-shell once and then try again"
+	exit 1
+fi
+
+read -s -p "Enter mobile device password: " sudopass
+echo ""
+temp1=$(mktemp)
+temp2=$(mktemp)
+temp3=$(mktemp)
+
+echo "FILE $temp3 $from_path $files"
+
+cd $from_path && tar --wildcards -cf $temp3 $files && scp -P $port $temp3 phablet@$device_address:/home/phablet && ssh -p $port phablet@$device_address "echo $sudopass | sudo -S tar -xvf /home/phablet/$(basename $temp3) --no-same-owner -C $dest_path"
+
+rm $temp1 $temp2 $temp3
+exit $res
+
+
